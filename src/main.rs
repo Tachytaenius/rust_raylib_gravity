@@ -1,10 +1,10 @@
 use raylib::prelude::*;
 use rand::Rng;
 
-const DISPLAY_WIDTH: i32 = 800;
+const DISPLAY_WIDTH: i32 = 1000;
 const DISPLAY_HEIGHT: i32 = 800;
 
-const STARTING_BODY_COUNT: i32 = 2000;
+const STARTING_BODY_COUNT: i32 = 1000;
 
 const G: f32 = 1000.0;
 
@@ -22,13 +22,22 @@ fn colliding(body_a: &Body, body_b: &Body) -> bool {
     return (body_b.position - body_a.position).length() < body_a.radius + body_b.radius;
 }
 
+fn random_vector_circle(rng: &mut rand::rngs::ThreadRng, radius: f32) -> Vector2 {
+    let r = (rng.gen_range(0.0..1.0) as f32).powf(1.0) * radius;
+    let theta = rng.gen_range(0.0..std::f32::consts::TAU);
+    return Vector2::new(theta.cos() * r, theta.sin() * r);
+}
+
 fn main() {
     let mut bodies: Vec<Body> = Vec::with_capacity(STARTING_BODY_COUNT as usize);
     let mut rng = rand::thread_rng();
     for _ in 0..STARTING_BODY_COUNT {
+        let position_relative_to_centre = random_vector_circle(&mut rng, DISPLAY_WIDTH.min(DISPLAY_HEIGHT) as f32 / 2.0);
+        let position = position_relative_to_centre + Vector2::new(DISPLAY_WIDTH as f32 / 2.0, DISPLAY_HEIGHT as f32 / 2.0);
         let new_body = Body {
-            position: Vector2::new(rng.gen_range(0.0..DISPLAY_WIDTH as f32), rng.gen_range(0.0..DISPLAY_HEIGHT as f32)),
-            velocity: Vector2::new(rng.gen_range(-100.0..100.0), rng.gen_range(-100.0..100.0)),
+            position: position,
+            velocity: Vector2::new(-position_relative_to_centre.y, position_relative_to_centre.x).scale_by(0.1),
+            // velocity: Vector2::new(0.0, 0.0),
             colour: Color::new(rng.gen_range(40..255), rng.gen_range(40..255), rng.gen_range(40..255), 255),
             radius: 1.0,
             mass: 1.0,
